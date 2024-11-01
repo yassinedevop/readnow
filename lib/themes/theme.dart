@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class AppTheme {
   static final ThemeData lightTheme = ThemeData(
     primaryColor: Color.fromRGBO(26, 83, 92, 1), // Midnight Green
-    scaffoldBackgroundColor: Color.fromRGBO(247, 255, 247, 1), // Mint Cream
+    scaffoldBackgroundColor: Colors.white, // Mint Cream
     cardColor: Color.fromRGBO(247, 255, 247, 1), // Mint Cream
     textTheme: TextTheme(
       displayLarge: TextStyle(color: Color.fromRGBO(26, 83, 92, 1), fontSize: 24, fontWeight: FontWeight.bold),

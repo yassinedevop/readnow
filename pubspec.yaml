@@ -28,14 +28,18 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  bloc: ^8.1.4
+  equatable: ^2.0.5
   external_path: ^2.0.1
   file_picker: ^8.1.3
   flutter:
     sdk: flutter
+  flutter_bloc: ^8.1.6
   http: ^1.2.2
   path_provider: ^2.1.4
   pdfx: ^2.8.0
   permission_handler: ^11.3.1
+  shared_preferences: ^2.3.2
   syncfusion_flutter_pdfviewer: ^27.1.56
 
 
