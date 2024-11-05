@@ -112,7 +112,7 @@ class _MostReadBooksState extends State<MostReadBooks> {
             splashColor: Theme.of(context).primaryColor.withOpacity(0.5),
             onTap: () async {
               // Update the last read time and read count
-              context.read<DocumentBloc>().add(UpdateDocumentRead(documents[index].path));
+              context.read<DocumentBloc>().add(UpdateDocumentRead(documents[index].path, documents[index].lastPageRead));
               // Navigate to PDFViewerScreen and wait for the result
               final result = await Navigator.push(
                 context,
@@ -166,7 +166,7 @@ class _MostReadBooksState extends State<MostReadBooks> {
           highlightColor: Theme.of(context).primaryColor.withOpacity(0.5),
           onTap: () async {
             // Update the last read time and read count
-            context.read<DocumentBloc>().add(UpdateDocumentRead(documents[index].path));
+            context.read<DocumentBloc>().add(UpdateDocumentRead(documents[index].path, documents[index].lastPageRead));
             // Navigate to PDFViewerScreen and wait for the result
             final result = await Navigator.push(
               context,
@@ -221,7 +221,7 @@ class _MostReadBooksState extends State<MostReadBooks> {
   Future<void> updateMostRead(Document document)async{
 
     // Update the last read time
-    context.read<DocumentBloc>().add( UpdateDocumentRead(document.path));
+    context.read<DocumentBloc>().add( UpdateDocumentRead(document.path, document.lastPageRead));
 
     // Navigate to PDFViewerScreen
      final result = await       Navigator.push(

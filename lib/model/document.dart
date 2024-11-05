@@ -5,6 +5,7 @@ class Document {
   String thumbnailPath;
   DateTime? lastRead;
   int readCount;
+  int lastPageRead;
 
   Document({
     required this.id,
@@ -13,6 +14,7 @@ class Document {
     required this.thumbnailPath,
     this.lastRead,
     this.readCount = 0,
+    this.lastPageRead = 0,
   });
 
   factory Document.fromMap(Map<String, dynamic> map) {
@@ -23,6 +25,7 @@ class Document {
       thumbnailPath: map['thumbnailPath'],
       lastRead: map['lastRead'] != null ? DateTime.parse(map['lastRead']) : null,
       readCount: map['readCount'] ?? 0,
+      lastPageRead: map['lastPageRead'] ?? 0,
     );
   }
 
@@ -34,6 +37,7 @@ class Document {
       'thumbnailPath': thumbnailPath,
       'lastRead': lastRead?.toIso8601String(),
       'readCount': readCount,
+      'lastPageRead': lastPageRead,
     };
   }
 }

@@ -8,7 +8,6 @@ abstract class DocumentEvent extends Equatable {
 }
 
 class LoadDocuments extends DocumentEvent {
-
   const LoadDocuments();
 
   @override
@@ -17,9 +16,10 @@ class LoadDocuments extends DocumentEvent {
 
 class UpdateDocumentRead extends DocumentEvent {
   final String filePath;
+  final int lastPageRead;
 
-  const UpdateDocumentRead(this.filePath);
+  const UpdateDocumentRead(this.filePath, this.lastPageRead);
 
   @override
-  List<Object> get props => [];
+  List<Object> get props => [filePath, lastPageRead];
 }

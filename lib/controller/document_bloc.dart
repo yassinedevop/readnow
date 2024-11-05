@@ -35,7 +35,17 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
     }
   }
 
-
+  Future<void> _onUpdateDocumentRead(UpdateDocumentRead event, Emitter<DocumentState> emit) async {
+    prefs = await SharedPreferences.getInstance();
+    try {
+      await _setLastRead(event.filePath);
+      await _incrementReadCount(event.filePath);
+      await _setLastPageRead(event.filePath, event.lastPageRead);
+      emit(DocumentReadUpdated(event.filePath));
+    } catch (e) {
+      emit(DocumentError(e.toString()));
+    }
+  }
 
   Future<List<Document>> _getFiles() async {
     List<Document> pdfFiles = [];
@@ -45,23 +55,22 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
       PermissionStatus permissionStatus = await Permission.manageExternalStorage.request();
       if (permissionStatus.isGranted) {
         // Permission granted for Android 11+
-        String downloadDirectory =  await ExternalPath.getExternalStoragePublicDirectory(ExternalPath.DIRECTORY_DOWNLOADS);
-          var directories = Directory(downloadDirectory).listSync(recursive: true);
-          for (var element in directories) {
-
-            // search only on Downloads
-            if ( element is File && element.path.endsWith(".pdf")) {
-              print(element.path); 
-              pdfFiles.add(Document(
-                id: element.path.hashCode.toString(),
-                title: element.path.split('/').last.split('.').first,
-                path: element.path,
-                thumbnailPath: await _renderFirstPage(element.path),
-                lastRead: await _getLastRead(element.path),
-readCount: await _getReadCount(element.path),
-              ));
-            }
-          
+        String downloadDirectory = await ExternalPath.getExternalStoragePublicDirectory(ExternalPath.DIRECTORY_DOWNLOADS);
+        var directories = Directory(downloadDirectory).listSync(recursive: true);
+        for (var element in directories) {
+          // search only on Downloads and skip hidden files
+          if (element is File && element.path.endsWith(".pdf") && !element.path.contains("/.")) {
+            print(element.path);
+            pdfFiles.add(Document(
+              id: element.path.hashCode.toString(),
+              title: element.path.split('/').last.split('.').first,
+              path: element.path,
+              thumbnailPath: await _renderFirstPage(element.path),
+              lastRead: await _getLastRead(element.path),
+              readCount: await _getReadCount(element.path),
+              lastPageRead: await _getLastPageRead(element.path),
+            ));
+          }
         }
       } else {
         throw Exception("Permission denied");
@@ -73,15 +82,19 @@ readCount: await _getReadCount(element.path),
   }
 
   Future<String> _renderFirstPage(String path) async {
-    final String cachedImagePath = await _imageFromCache(path.split('/').last);
-    if (cachedImagePath == '') {
-      final document = await PdfDocument.openFile(path);
-      final page = await document.getPage(1);
-      final pageImage = await page.render(width: page.width, height: page.height);
-      await page.close();
-      return _saveImageToCache(pageImage!.bytes, path);
-    } else {
-      return cachedImagePath;
+    try {
+      final String cachedImagePath = await _imageFromCache(path.split('/').last);
+      if (cachedImagePath == '') {
+        final document = await PdfDocument.openFile(path);
+        final page = await document.getPage(1);
+        final pageImage = await page.render(width: page.width, height: page.height);
+        await page.close();
+        return _saveImageToCache(pageImage!.bytes, path);
+      } else {
+        return cachedImagePath;
+      }
+    } catch (e) {
+      throw Exception("Error rendering first page: $e");
     }
   }
 
@@ -115,20 +128,17 @@ readCount: await _getReadCount(element.path),
     return prefs.getInt('readCount_$filePath') ?? 0;
   }
 
-  Future<void> _onUpdateDocumentRead(UpdateDocumentRead event, Emitter<DocumentState> emit) async {
-    prefs = await SharedPreferences.getInstance();
-    try {
-      await _setLastRead(event.filePath);
-      await _incrementReadCount(event.filePath);
-      emit(DocumentReadUpdated(event.filePath));
-    } catch (e) {
-      emit(DocumentError(e.toString()));
-    }
-  }
-
   Future<void> _incrementReadCount(String filePath) async {
     int readCount = (prefs.getInt('readCount_$filePath') ?? 0);
     readCount++;
     await prefs.setInt('readCount_$filePath', readCount);
+  }
+
+  Future<int> _getLastPageRead(String filePath) async {
+    return prefs.getInt('lastPageRead_$filePath') ?? 0;
+  }
+
+  Future<void> _setLastPageRead(String filePath, int pageNumber) async {
+    await prefs.setInt('lastPageRead_$filePath', pageNumber);
   }
 }

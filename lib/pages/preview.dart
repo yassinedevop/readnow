@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import 'package:readnow/controller/document_bloc.dart';
+import 'package:readnow/controller/document_event.dart';
 
 class PDFViewerScreen extends StatefulWidget {
   final String pdfPath;
@@ -31,6 +34,7 @@ class PDFViewerScreenState extends State<PDFViewerScreen> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
+            context.read<DocumentBloc>().add(UpdateDocumentRead(widget.pdfPath, _pdfViewerController.pageNumber));
             Navigator.pop(context, true); // Pass a result back to the previous screen
           },
         ),
