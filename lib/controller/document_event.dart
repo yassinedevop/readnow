@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+
 abstract class DocumentEvent extends Equatable {
   const DocumentEvent();
 
@@ -8,6 +9,8 @@ abstract class DocumentEvent extends Equatable {
 }
 
 class LoadDocuments extends DocumentEvent {
+  
+
   const LoadDocuments();
 
   @override

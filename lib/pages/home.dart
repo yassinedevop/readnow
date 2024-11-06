@@ -11,12 +11,6 @@ class PdfListScreen extends StatefulWidget {
 }
 
 class _PdfListScreenState extends State<PdfListScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Fetch PDFs when the screen initializes
-    context.read<DocumentBloc>().add(LoadDocuments());
-  }
 
   Future<void> _refresh() async {
     context.read<DocumentBloc>().add(LoadDocuments());

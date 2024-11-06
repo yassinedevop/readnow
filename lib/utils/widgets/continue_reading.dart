@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
 import 'package:readnow/controller/document_bloc.dart';
 import 'package:readnow/controller/document_state.dart';
 import 'package:readnow/model/document.dart';
@@ -19,9 +20,11 @@ class ContinueReading extends StatelessWidget {
               margin: EdgeInsets.all(8),
               color: Colors.white30,
               child: InkWell(
-                 highlightColor : Theme.of(context).colorScheme.secondary,
+                highlightColor: Theme.of(context).colorScheme.secondary,
                 onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => PDFViewerScreen(pdfName: lastReadDocument.title, pdfPath: lastReadDocument.path)));
+                  Get.to(() => PDFViewerScreen(), arguments: {
+                    'document' : lastReadDocument
+                  });
                 },
                 child: Row(
                   children: [

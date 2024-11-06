@@ -12,6 +12,8 @@ import 'dart:io';
 
 class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
   late SharedPreferences prefs;
+  List<Document> documents = [];
+
 
   DocumentBloc() : super(DocumentInitial()) {
     on<LoadDocuments>(_onLoadDocuments);
@@ -28,8 +30,12 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
   Future<void> _onLoadDocuments(LoadDocuments event, Emitter<DocumentState> emit) async {
     emit(DocumentLoading());
     try {
-      List<Document> documents = await _getFiles();
-      emit(DocumentLoaded(documents));
+      if( documents.isEmpty ) {
+        final documents = await _getFiles();
+        emit(DocumentLoaded(documents));
+      } else {
+        emit(DocumentLoaded(documents));
+      }
     } catch (e) {
       emit(DocumentError(e.toString()));
     }

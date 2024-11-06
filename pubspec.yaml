@@ -35,6 +35,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^8.1.6
+  get: ^4.6.6
   http: ^1.2.2
   path_provider: ^2.1.4
   pdfx: ^2.8.0
