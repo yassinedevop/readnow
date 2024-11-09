@@ -34,8 +34,9 @@ class PDFViewerScreenState extends State<PDFViewerScreen> {
     final Map<String, dynamic> args = Get.arguments;
     final Document document = args['document'];
 
-    return WillPopScope(
-      onWillPop: () async {
+    return Scaffold(
+      body: WillPopScope(
+        onWillPop: () async {
         print('Page number: ${_pdfViewerController.pageNumber}');
         context.read<DocumentBloc>().add(UpdateDocumentRead(document.path, _pageNumber));
         Get.back(result: true); // Pass a result back to the previous screen
