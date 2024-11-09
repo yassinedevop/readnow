@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:readnow/controller/document_bloc.dart';
 import 'package:readnow/controller/document_event.dart';
 import 'package:readnow/pages/home.dart';
@@ -18,7 +19,7 @@ class MyApp extends StatelessWidget {
     return BlocProvider(
       create: (context) => DocumentBloc()..add(LoadDocuments()),
       child: GetMaterialApp(
-        title: 'ReadNow',
+        title: 'Read Now',
         theme: AppTheme.darkTheme,
         home: PdfListScreen(),
         getPages: [
@@ -32,54 +33,77 @@ class MyApp extends StatelessWidget {
 
 class AppTheme {
   static final ThemeData lightTheme = ThemeData(
-    primaryColor: Color.fromRGBO(26, 83, 92, 1), // Midnight Green
-    scaffoldBackgroundColor: Colors.white, // Mint Cream
-    cardColor: Color.fromRGBO(200, 212, 200, 1), // Mint Cream
+    primaryColor: Color(0xFF6368EC), // Primary color
+    scaffoldBackgroundColor: Color(0xFF0f1923), // Background color
+    cardColor: Color(0xFF1A253B), // Cards color
     textTheme: TextTheme(
-      displayLarge: TextStyle(color: Color.fromRGBO(26, 83, 92, 1), fontSize: 24, fontWeight: FontWeight.bold),
-      bodyLarge: TextStyle(color: Color.fromRGBO(26, 83, 92, 1), fontSize: 16),
+      displayLarge: GoogleFonts.lato(
+        textStyle: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+      ),
+      bodyLarge: GoogleFonts.roboto(
+        textStyle: TextStyle(color: Colors.white, fontSize: 16),
+      ),
+      bodyMedium: GoogleFonts.openSans(
+        textStyle: TextStyle(color: Colors.white, fontSize: 14),
+      ),
+      titleMedium: GoogleFonts.montserrat(
+        textStyle: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500),
+      ),
     ),
     buttonTheme: ButtonThemeData(
-      buttonColor: Color.fromRGBO(78, 205, 196, 1), // Robin Egg Blue
+      buttonColor: Color(0xFF6368EC), // Primary color
       textTheme: ButtonTextTheme.primary,
     ),
     appBarTheme: AppBarTheme(
-      backgroundColor: Color.fromRGBO(78, 205, 196, 1), // Robin Egg Blue
+      backgroundColor: Color(0xFF6368EC), // Primary color
       elevation: 0,
-      iconTheme: IconThemeData(color: Color.fromRGBO(247, 255, 247, 1)), // Mint Cream
+      iconTheme: IconThemeData(color: Colors.white),
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
-      backgroundColor: Color.fromRGBO(255, 107, 107, 1), // Light Red
-    ), colorScheme: ColorScheme.light(
-      primary: Color.fromRGBO(26, 83, 92, 1), // Midnight Green
-      secondary: Color.fromRGBO(255, 230, 109, 1), // Naples Yellow
-      surface: Color.fromRGBO(221, 224, 221, 1), // Mint Cream
+      backgroundColor: Color(0xFF6368EC), // Primary color
+    ),
+    colorScheme: ColorScheme.light(
+      primary: Color(0xFF6368EC), // Primary color
+      secondary: Color(0xFF6368EC), // Primary color
+      surface: Color(0xFF1A253B), // Cards color
     ),
   );
 
   static final ThemeData darkTheme = ThemeData(
-    primaryColor: Color.fromRGBO(26, 83, 92, 1), // Midnight Green
-    scaffoldBackgroundColor: Colors.black, // AMOLED Black
-    cardColor: Colors.black, // AMOLED Black
+    shadowColor: Colors.white30,
+    primaryColor: Color(0xFF6368EC), // Primary color
+    scaffoldBackgroundColor: Color(0xFF0f1923), // Background color
+    cardColor: Color(0xFF1A253B), // Cards color
     textTheme: TextTheme(
-      displayLarge: TextStyle(color: Color.fromRGBO(247, 255, 247, 1), fontSize: 24, fontWeight: FontWeight.bold), // Mint Cream
-      bodyLarge: TextStyle(color: Color.fromRGBO(247, 255, 247, 1), fontSize: 16), // Mint Cream
+      displayLarge: GoogleFonts.lato(
+        textStyle: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+      ),
+      bodyLarge: GoogleFonts.roboto(
+        textStyle: TextStyle(color: Colors.white, fontSize: 16),
+      ),
+      bodyMedium: GoogleFonts.openSans(
+        textStyle: TextStyle(color: Colors.white, fontSize: 14),
+      ),
+      titleMedium: GoogleFonts.montserrat(
+        textStyle: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500),
+      ),
     ),
     buttonTheme: ButtonThemeData(
-      buttonColor: Color.fromRGBO(78, 205, 196, 1), // Robin Egg Blue
+      buttonColor: Color(0xFF6368EC), // Primary color
       textTheme: ButtonTextTheme.primary,
     ),
     appBarTheme: AppBarTheme(
-      backgroundColor: Color.fromRGBO(26, 83, 92, 1), // Midnight Green
+      backgroundColor: Color(0xFF0f1923), // Primary color
       elevation: 0,
-      iconTheme: IconThemeData(color: Color.fromRGBO(247, 255, 247, 1)), // Mint Cream
+      iconTheme: IconThemeData(color: Colors.white),
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
-      backgroundColor: Color.fromRGBO(255, 107, 107, 1), // Light Red
-    ), colorScheme: ColorScheme.dark(
-      primary: Color.fromRGBO(26, 83, 92, 1), // Midnight Green
-      secondary: Color.fromRGBO(255, 230, 109, 1), // Naples Yellow
-      surface: Colors.black, // AMOLED Black
+      backgroundColor: Color(0xFF6368EC), // Primary color
+    ),
+    colorScheme: ColorScheme.dark(
+      primary: Color(0xFF6368EC), // Primary color
+      secondary: Color(0xFF6368EC), // Primary color
+      surface: Color(0xFF1A253B), // Cards color
     ),
   );
 }

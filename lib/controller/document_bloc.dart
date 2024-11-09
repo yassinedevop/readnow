@@ -66,15 +66,15 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
         for (var element in directories) {
           // search only on Downloads and skip hidden files
           if (element is File && element.path.endsWith(".pdf") && !element.path.contains("/.")) {
-            print(element.path);
+            final pathAndCount = await _renderFirstPage(element.path);
             pdfFiles.add(Document(
               id: element.path.hashCode.toString(),
               title: element.path.split('/').last.split('.').first,
               path: element.path,
-              thumbnailPath: await _renderFirstPage(element.path),
+              thumbnailPath: await pathAndCount[0],
               lastRead: await _getLastRead(element.path),
               readCount: await _getReadCount(element.path),
-              lastPageRead: await _getLastPageRead(element.path),
+              lastPageRead: await _getLastPageRead(element.path), pageCount: pathAndCount[1],
             ));
           }
         }
@@ -87,17 +87,20 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
     return pdfFiles;
   }
 
-  Future<String> _renderFirstPage(String path) async {
+  Future<List<dynamic>> _renderFirstPage(String path) async {
     try {
       final String cachedImagePath = await _imageFromCache(path.split('/').last);
       if (cachedImagePath == '') {
         final document = await PdfDocument.openFile(path);
+        final pageCount = document.pagesCount;
         final page = await document.getPage(1);
-        final pageImage = await page.render(width: page.width, height: page.height);
+        final pageImage = await page.render(width: page.width, height: page.height, backgroundColor: '#ffffff', quality: 80 , format: PdfPageImageFormat.png);
         await page.close();
-        return _saveImageToCache(pageImage!.bytes, path);
+        return [_saveImageToCache(pageImage!.bytes, path),pageCount];
       } else {
-        return cachedImagePath;
+        final document = await PdfDocument.openFile(path);
+        final pageCount = document.pagesCount;
+        return [cachedImagePath,pageCount];
       }
     } catch (e) {
       throw Exception("Error rendering first page: $e");
@@ -141,7 +144,7 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
   }
 
   Future<int> _getLastPageRead(String filePath) async {
-    return prefs.getInt('lastPageRead_$filePath') ?? 0;
+    return prefs.getInt('lastPageRead_$filePath') ?? 1;
   }
 
   Future<void> _setLastPageRead(String filePath, int pageNumber) async {

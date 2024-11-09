@@ -1,13 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
-import 'package:readnow/controller/document_bloc.dart';
-import 'package:readnow/controller/document_event.dart';
-import 'package:readnow/controller/document_state.dart';
+
 import 'package:readnow/model/document.dart';
-import 'package:readnow/pages/preview.dart';
+
 
 class ToggleGridView extends StatelessWidget {
   final bool isGridView;
@@ -25,20 +22,17 @@ class ToggleGridView extends StatelessWidget {
 }
 
 class MostReadBooks extends StatefulWidget {
+  final List<Document> documents;
+  final Function refreshDocuments;
+
+  MostReadBooks({required this.documents, required this.refreshDocuments});
+
   @override
   _MostReadBooksState createState() => _MostReadBooksState();
 }
 
 class _MostReadBooksState extends State<MostReadBooks> {
   bool _isGridView = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // Load documents when the widget is initialized
-      context.read<DocumentBloc>().add(LoadDocuments());
-    
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,21 +61,7 @@ class _MostReadBooksState extends State<MostReadBooks> {
           SizedBox(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height * 0.6,
-            child: BlocBuilder<DocumentBloc, DocumentState>(
-              builder: (context, state) {
-                if (state is DocumentLoading) {
-                  return Center(child: CircularProgressIndicator());
-                } else if (state is DocumentLoaded) {
-                  List<Document> sortedDocuments = List.from(state.documents);
-                  sortedDocuments.sort((a, b) => b.readCount.compareTo(a.readCount));
-                  return _isGridView ? _buildGridView(sortedDocuments) : _buildListView(sortedDocuments);
-                } else if (state is DocumentError) {
-                  return Center(child: Text('Error: ${state.message}'));
-                } else {
-                  return Center(child: Text('No documents found'));
-                }
-              },
-            ),
+            child: _isGridView ? _buildGridView(widget.documents) : _buildListView(widget.documents),
           ),
         ],
       ),
@@ -90,9 +70,9 @@ class _MostReadBooksState extends State<MostReadBooks> {
 
   Widget _buildGridView(List<Document> documents) {
     return GridView.builder(
-      padding: EdgeInsets.symmetric(horizontal: 4),
+     
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        childAspectRatio: 9 / 10,
+        childAspectRatio: 7 / 10,
         crossAxisCount: 2,
       ),
       itemCount: documents.length,
@@ -100,36 +80,31 @@ class _MostReadBooksState extends State<MostReadBooks> {
         String fileName = documents[index].title; // Extract file name
         return GestureDetector(
           onTap: () async {
-            // Navigate to PDFViewerScreen and wait for the result
-            final result = await Get.toNamed('/preview', arguments: {
-              'document': documents[index],
-            });
-            if (result == true) {
-              // Update the last read time and read count
-              context.read<DocumentBloc>().add(UpdateDocumentRead(documents[index].path, documents[index].lastPageRead));
-              // Refresh the document list if the result is true
-              context.read<DocumentBloc>().add(LoadDocuments());
-            }
+            await updateMostRead(documents[index]);
           },
-          child: Container(
-            margin: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              color: Colors.white,
-            ),
-            child: Column(
-              children: [
-                Container(
+          child: Column(
+            children: [
+              Expanded(
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    image: DecorationImage(
-                      image: FileImage(File(documents[index].thumbnailPath)),
-                      fit: BoxFit.cover,
-                    ),
+                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.white,
                   ),
-                  height: MediaQuery.of(context).size.width * 0.6,
+                  child: Container(
+                    
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.0),
+                      image: DecorationImage(
+                        image: FileImage(File(documents[index].thumbnailPath)),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    height: MediaQuery.of(context).size.width * 0.6,
+                  ),
                 ),
-                Padding(
+              ),
+              Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
                     fileName,
@@ -139,8 +114,7 @@ class _MostReadBooksState extends State<MostReadBooks> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-              ],
-            ),
+            ],
           ),
         );
       },
@@ -149,55 +123,100 @@ class _MostReadBooksState extends State<MostReadBooks> {
 
   Widget _buildListView(List<Document> documents) {
     return ListView.builder(
-      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      padding: EdgeInsets.symmetric( vertical: 4),
       itemCount: documents.length,
       itemBuilder: (context, index) {
         String fileName = documents[index].title; // Extract file name
-        return InkWell(
-          splashColor: Theme.of(context).primaryColor.withOpacity(0.5),
-          highlightColor: Theme.of(context).primaryColor.withOpacity(0.5),
-          onTap: () async {
-            // Navigate to PDFViewerScreen and wait for the result
-            final result = await Get.toNamed('/preview', arguments: {
-              'document': documents[index],
-            });
-            if (result == true){
-             
-              // Refresh the document list if the result is true
-              context.read<DocumentBloc>().add(LoadDocuments());
-              
-            }
-          },
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Container(
-              margin: EdgeInsets.symmetric(vertical: 4),
-              color: Colors.white30,
-              child: ListTile(
-                leading: Container(
-                  height: 100,
-                  width: 50,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(6),
-                    image: DecorationImage(
-                      image: FileImage(File(documents[index].thumbnailPath)),
-                      fit: BoxFit.cover,
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Material(
+            color : Theme.of(context).cardColor,
+            shadowColor:Colors.white10,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            elevation: 2, 
+            
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                splashColor: Theme.of(context).primaryColor.withOpacity(0.5),
+                highlightColor: Theme.of(context).primaryColor.withOpacity(0.5),
+                onTap: () async {
+                 await  updateMostRead(documents[index]);
+                },
+                child: ListTile(
+                  minLeadingWidth: 48.0,
+                  
+                  leading: Container(
+                   color: Colors.white,
+                  /*   decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(6),
+                      image: DecorationImage(
+                        image: FileImage(File(documents[index].thumbnailPath)),
+                        fit: BoxFit.cover,
+                      ),
+                    ), */
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0.0, end:  1.0),
+                      
+                      duration: Duration(
+                        milliseconds: index * 100,
+                      ),
+                      curve: Curves.easeOut,
+                      builder: (BuildContext context, double value, Widget? child) { 
+                        return Opacity(
+                          opacity: value,
+                          child: Image(
+                            image: FileImage(
+                              File(documents[index].thumbnailPath),
+                            ),
+                            fit: BoxFit.cover,
+                          ),
+                        );
+                       },
+                    
                     ),
                   ),
-                ),
-                title: Text(
-                  fileName,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                subtitle: Text(
-                  'Read Count: ${documents[index].readCount}',
-                  style: Theme.of(context).textTheme.bodySmall,
+                  title: Text(
+                    fileName,
+                    style: Theme.of(context).textTheme.titleMedium,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: SizedBox(
+                    width: 50,
+                    child: Text(
+                    
+                      '${documents[index].lastPageRead}/${documents[index].pageCount}'
+                      ,
+                    textAlign: TextAlign.right,
+                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                        color: Theme.of(context).highlightColor,
+                        
+                      ),
+                    ),
+                  ),
+                  subtitle: TweenAnimationBuilder<int>(
+          tween: IntTween(
+            begin: 0,
+            end: 100,
+          ),
+          duration: Duration(milliseconds: index*300),
+          curve: Curves.easeOut,
+          builder: (context, progress, child) {
+            return LinearProgressIndicator(
+              semanticsLabel: 'Read Progress',
+              semanticsValue: '${documents[index].lastPageRead}/${documents[index].pageCount}',
+              value: (documents[index].lastPageRead/documents[index].pageCount)*progress/100,
+              valueColor: AlwaysStoppedAnimation(Theme.of(context).primaryColor),
+              color: Theme.of(context).primaryColor,
+              backgroundColor: Theme.of(context).primaryColor.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(12),
+              minHeight: 5.0,
+            );
+          },
+                    ),
                 ),
               ),
             ),
-          ),
         );
       },
     );
@@ -206,21 +225,17 @@ class _MostReadBooksState extends State<MostReadBooks> {
 
   @override
   void dispose() {
-    
-
     super.dispose();
   }
 
   Future<void> updateMostRead(Document document) async {
-    // Update the last read time
-    context.read<DocumentBloc>().add(UpdateDocumentRead(document.path, document.lastPageRead));
-    // Navigate to PDFViewerScreen
-    final result = await Get.to(() => PDFViewerScreen(), arguments: {
-      'document' : document,
+    // Navigate to PDFViewerScreen and wait for the result
+    final result = await Get.toNamed('/preview', arguments: {
+      'document': document,
     });
     if (result == true) {
-      // Refresh the UI
-      context.read<DocumentBloc>().add(LoadDocuments());
+      // Refresh the document list if the result is true
+      widget.refreshDocuments();
     }
   }
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:readnow/controller/document_bloc.dart';
 import 'package:readnow/controller/document_event.dart';
+import 'package:readnow/controller/document_state.dart';
+import 'package:readnow/model/document.dart';
 import 'package:readnow/utils/widgets/continue_reading.dart';
 import 'package:readnow/utils/widgets/most_read.dart';
 
@@ -11,9 +13,20 @@ class PdfListScreen extends StatefulWidget {
 }
 
 class _PdfListScreenState extends State<PdfListScreen> {
+  List<Document> _documents = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDocuments();
+  }
+
+  Future<void> _loadDocuments() async {
+    context.read<DocumentBloc>().add(LoadDocuments());
+  }
 
   Future<void> _refresh() async {
-    context.read<DocumentBloc>().add(LoadDocuments());
+    await _loadDocuments();
   }
 
   @override
@@ -21,16 +34,26 @@ class _PdfListScreenState extends State<PdfListScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('PDF List'),
+        backgroundColor: Colors.transparent,
+        title: Text('Read Now'),
       ),
-      body: RefreshIndicator(
-        onRefresh: _refresh,
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              ContinueReading(),
-              MostReadBooks(),
-            ],
+      body: BlocListener<DocumentBloc, DocumentState>(
+        listener: (context, state) {
+          if (state is DocumentLoaded) {
+            setState(() {
+              _documents = state.documents;
+            });
+          }
+        },
+        child: RefreshIndicator(
+          onRefresh: _refresh,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                ContinueReading(documents: _documents, refreshDocuments: _refresh),
+                MostReadBooks(documents: _documents, refreshDocuments: _refresh),
+              ],
+            ),
           ),
         ),
       ),

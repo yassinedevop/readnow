@@ -6,6 +6,7 @@ class Document {
   DateTime? lastRead;
   int readCount;
   int lastPageRead;
+  int pageCount ;
 
   Document({
     required this.id,
@@ -13,8 +14,9 @@ class Document {
     required this.path,
     required this.thumbnailPath,
     this.lastRead,
-    this.readCount = 0,
-    this.lastPageRead = 0,
+    this.readCount = 1,
+    this.lastPageRead = 1,
+    required this.pageCount 
   });
 
   factory Document.fromMap(Map<String, dynamic> map) {
@@ -24,9 +26,9 @@ class Document {
       path: map['path'],
       thumbnailPath: map['thumbnailPath'],
       lastRead: map['lastRead'] != null ? DateTime.parse(map['lastRead']) : null,
-      readCount: map['readCount'] ?? 0,
-      lastPageRead: map['lastPageRead'] ?? 0,
-    );
+      readCount: map['readCount'] ?? 1,
+      lastPageRead: map['lastPageRead'] ?? 1,
+      pageCount: map['pageCount'] ?? 1,);
   }
 
   Map<String, dynamic> toMap() {
@@ -38,6 +40,7 @@ class Document {
       'lastRead': lastRead?.toIso8601String(),
       'readCount': readCount,
       'lastPageRead': lastPageRead,
+      'pageCount': pageCount,
     };
   }
 }
