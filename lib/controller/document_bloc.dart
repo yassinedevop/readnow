@@ -14,10 +14,11 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
   late SharedPreferences prefs;
   List<Document> documents = [];
 
-
   DocumentBloc() : super(DocumentInitial()) {
     on<LoadDocuments>(_onLoadDocuments);
     on<UpdateDocumentRead>(_onUpdateDocumentRead);
+    on<UpdateDocumentCategory>(_onUpdateDocumentCategory);
+    on<GetDocumentLastRead>(_onGetDocumentLastRead);
     _initSharedPreferences();
   }
 
@@ -30,12 +31,10 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
   Future<void> _onLoadDocuments(LoadDocuments event, Emitter<DocumentState> emit) async {
     emit(DocumentLoading());
     try {
-      if( documents.isEmpty ) {
-        final documents = await _getFiles();
-        emit(DocumentLoaded(documents));
-      } else {
-        emit(DocumentLoaded(documents));
+      if (documents.isEmpty) {
+        documents = await _getFiles();
       }
+      emit(DocumentLoaded(documents));
     } catch (e) {
       emit(DocumentError(e.toString()));
     }
@@ -48,6 +47,27 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
       await _incrementReadCount(event.filePath);
       await _setLastPageRead(event.filePath, event.lastPageRead);
       emit(DocumentReadUpdated(event.filePath));
+      emit(DocumentLoaded(documents)); // Ensure the state is updated with the latest documents
+    } catch (e) {
+      emit(DocumentError(e.toString()));
+    }
+  }
+
+  Future<void> _onUpdateDocumentCategory(UpdateDocumentCategory event, Emitter<DocumentState> emit) async {
+    try {
+      final document = documents.firstWhere((doc) => doc.path == event.filePath);
+      document.category = event.category;
+      emit(DocumentLoaded(documents)); // Ensure the state is updated with the latest documents
+    } catch (e) {
+      emit(DocumentError(e.toString()));
+    }
+  }
+
+  Future<void> _onGetDocumentLastRead(GetDocumentLastRead event, Emitter<DocumentState> emit) async {
+    try {
+      final lastRead = await _getLastRead(event.filePath);
+      final lastPageRead = await _getLastPageRead(event.filePath);
+      emit(DocumentLastReadLoaded(event.filePath, lastRead, lastPageRead));
     } catch (e) {
       emit(DocumentError(e.toString()));
     }
@@ -96,11 +116,11 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
         final page = await document.getPage(1);
         final pageImage = await page.render(width: page.width, height: page.height, backgroundColor: '#ffffff', quality: 80 , format: PdfPageImageFormat.png);
         await page.close();
-        return [_saveImageToCache(pageImage!.bytes, path),pageCount];
+        return [_saveImageToCache(pageImage!.bytes, path), pageCount];
       } else {
         final document = await PdfDocument.openFile(path);
         final pageCount = document.pagesCount;
-        return [cachedImagePath,pageCount];
+        return [cachedImagePath, pageCount];
       }
     } catch (e) {
       throw Exception("Error rendering first page: $e");

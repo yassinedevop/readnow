@@ -21,7 +21,7 @@ class NavigationPan extends StatelessWidget {
                                 inactiveColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
                                 value: pageNumber.toDouble(),
                                 min: 1.0,
-                                divisions: pageCount-1,
+                                divisions: (pageCount-1) == 0 ? null : pageCount-1,
                                 max: pageCount.toDouble(),
                                 onChanged: onChanged
                               ),

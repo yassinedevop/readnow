@@ -3,18 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:readnow/controller/document_bloc.dart';
 import 'package:readnow/controller/document_event.dart';
 import 'package:readnow/controller/document_state.dart';
-import 'package:readnow/model/document.dart';
-import 'package:readnow/utils/widgets/continue_reading.dart';
-import 'package:readnow/utils/widgets/most_read.dart';
+import 'package:readnow/utils/widgets/preview_page/continue_reading.dart';
+import 'package:readnow/utils/widgets/preview_page/most_read.dart';
 
-class PdfListScreen extends StatefulWidget {
+class HomePage extends StatefulWidget {
   @override
-  _PdfListScreenState createState() => _PdfListScreenState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _PdfListScreenState extends State<PdfListScreen> {
-  List<Document> _documents = [];
-
+class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
@@ -37,25 +34,26 @@ class _PdfListScreenState extends State<PdfListScreen> {
         backgroundColor: Colors.transparent,
         title: Text('Read Now'),
       ),
-      body: BlocListener<DocumentBloc, DocumentState>(
-        listener: (context, state) {
+      body: BlocBuilder<DocumentBloc, DocumentState>(
+        builder: (context, state) {
           if (state is DocumentLoaded) {
-            setState(() {
-              _documents = state.documents;
-            });
+            return RefreshIndicator(
+              onRefresh: _refresh,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    ContinueReading(documents: state.documents,),
+                    MostReadBooks(documents: state.documents),
+                  ],
+                ),
+              ),
+            );
+          } else if (state is DocumentLoading) {
+            return Center(child: CircularProgressIndicator());
+          } else {
+            return Center(child: Text('Failed to load documents'));
           }
         },
-        child: RefreshIndicator(
-          onRefresh: _refresh,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                ContinueReading(documents: _documents, refreshDocuments: _refresh),
-                MostReadBooks(documents: _documents, refreshDocuments: _refresh),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }

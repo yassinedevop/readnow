@@ -7,12 +7,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:readnow/model/document.dart';
-import 'package:readnow/pages/widgets/preview_page/navigation_pan.dart';
+import 'package:readnow/utils/preview_tools.dart';
+import 'package:readnow/utils/widgets/home_page/navigation_pan.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:readnow/controller/document_bloc.dart';
 import 'package:readnow/controller/document_event.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
-import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
 
 class PDFViewerScreen extends StatefulWidget {
   @override
@@ -37,9 +37,6 @@ class PDFViewerScreenState extends State<PDFViewerScreen>
   late Animation<Offset> _bottomSlideAnimation;
   late Animation<double> _fadeAnimation;
   Timer? _timer;
-
-  late GlobalKey<SfSignaturePadState> _signaturePadKey;
-  bool _isDrawing = false;
 
   OverlayEntry? _overlayEntry;
 
@@ -82,8 +79,6 @@ class PDFViewerScreenState extends State<PDFViewerScreen>
       curve: Curves.easeInOut,
     ));
 
-    _signaturePadKey = GlobalKey<SfSignaturePadState>();
-
     _startTimer();
   }
 
@@ -92,6 +87,7 @@ class PDFViewerScreenState extends State<PDFViewerScreen>
     final bytes = await file.readAsBytes();
     documentBytes = bytes;
     _pdfDocument = PdfDocument(inputBytes: documentBytes);
+
     setState(() {});
   }
 
@@ -112,67 +108,14 @@ class PDFViewerScreenState extends State<PDFViewerScreen>
     BuildContext context,
     PdfTextSelectionChangedDetails? details,
   ) {
-    final RenderBox? renderBoxContainer =
-        context.findRenderObject()! as RenderBox;
-    if (renderBoxContainer != null) {
-      final double _kContextMenuHeight = 90;
-      final double _kContextMenuWidth = 100;
-      final double _kHeight = 18;
-      final Offset containerOffset = renderBoxContainer.localToGlobal(
-        renderBoxContainer.paintBounds.topLeft,
-      );
-      if (details != null &&
-              containerOffset.dy < details.globalSelectedRegion!.topLeft.dy ||
-          (containerOffset.dy <
-                  details!.globalSelectedRegion!.center.dy -
-                      (_kContextMenuHeight / 2) &&
-              details.globalSelectedRegion!.height > _kContextMenuWidth)) {
-        double top = 0.0;
-        double left = 0.0;
-        final Rect globalSelectedRect = details.globalSelectedRegion!;
-        if ((globalSelectedRect.top) > MediaQuery.of(context).size.height / 2) {
-          top = globalSelectedRect.topLeft.dy +
-              details.globalSelectedRegion!.height +
-              _kHeight;
-          left = globalSelectedRect.bottomLeft.dx;
-        } else {
-          top = globalSelectedRect.height > _kContextMenuWidth
-              ? globalSelectedRect.center.dy - (_kContextMenuHeight / 2)
-              : globalSelectedRect.topLeft.dy +
-                  details.globalSelectedRegion!.height +
-                  _kHeight;
-          left = globalSelectedRect.height > _kContextMenuWidth
-              ? globalSelectedRect.center.dx - (_kContextMenuWidth / 2)
-              : globalSelectedRect.bottomLeft.dx;
-        }
-        final OverlayState? _overlayState =
-            Overlay.of(context, rootOverlay: true);
-        _overlayEntry = OverlayEntry(
-          builder: (context) => Positioned(
-            top: top,
-            left: left,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
-                borderRadius: BorderRadius.circular(8.0),
-                
-              ),
-              constraints: BoxConstraints.tightFor(
-                  width: _kContextMenuWidth, height: _kContextMenuHeight),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _addAnnotation('Highlight', details.selectedText),
-                  _addAnnotation('Underline', details.selectedText),
-                  _addAnnotation('Strikethrough', details.selectedText),
-                ],
-              ),
-            ),
-          ),
-        );
-        _overlayState?.insert(_overlayEntry!);
-      }
-    }
+    final OverlayState? overlayState = Overlay.of(context, rootOverlay: true);
+    _overlayEntry = createContextMenu(context, details, (annotationType) {
+      _checkAndCloseContextMenu();
+      Clipboard.setData(ClipboardData(text: details!.selectedText!));
+      drawAnnotation(_pdfDocument, _pdfViewerController, _pdfViewerKey,
+          annotationType, _selectedColor);
+    });
+    overlayState?.insert(_overlayEntry!);
   }
 
   void _checkAndCloseContextMenu() {
@@ -182,129 +125,12 @@ class PDFViewerScreenState extends State<PDFViewerScreen>
     }
   }
 
-  Widget _addAnnotation(String? annotationType, String? selectedText) {
-    return Container(
-      height: 30,
-      width: 100,
-      child: RawMaterialButton(
-        onPressed: () async {
-          _checkAndCloseContextMenu();
-          await Clipboard.setData(ClipboardData(text: selectedText!));
-          _drawAnnotation(annotationType);
-        },
-        child: Text(
-          annotationType!,
-          style:Theme.of(context).textTheme.labelSmall!.copyWith(
-            color: Colors.grey.shade200,
-            fontWeight: FontWeight.w400
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _drawAnnotation(String? annotationType) {
-    switch (annotationType) {
-      case 'Highlight':
-        {
-          _pdfViewerKey.currentState!
-              .getSelectedTextLines()
-              .forEach((pdfTextLine) {
-            final PdfPage _page =
-                _pdfDocument.pages[pdfTextLine.pageNumber - 1];
-            final PdfRectangleAnnotation rectangleAnnotation =
-                PdfRectangleAnnotation(
-                    pdfTextLine.bounds, 'Highlight Annotation',
-                    author: 'Syncfusion',
-                    color: PdfColor.fromCMYK(0, 0, 255, 0),
-                    innerColor: PdfColor.fromCMYK(0, 0, 255, 0),
-                    opacity: 0.5);
-            _page.annotations.add(rectangleAnnotation);
-            _page.annotations.flattenAllAnnotations();
-            _pdfViewerController.addAnnotation(StickyNoteAnnotation(
-              pageNumber: pdfTextLine.pageNumber,
-              text: 'Highlight Annotation',
-              position: pdfTextLine.bounds.center,
-              icon: PdfStickyNoteIcon.note,
-            ));
-            
-          });
-
-        }
-        break;
-      case 'Underline':
-        {
-          _pdfViewerKey.currentState!
-              .getSelectedTextLines()
-              .forEach((pdfTextLine) {
-            final PdfPage _page = _pdfDocument.pages[pdfTextLine.pageNumber];
-            final PdfLineAnnotation lineAnnotation = PdfLineAnnotation(
-              [
-                pdfTextLine.bounds.left.toInt(),
-                (_pdfDocument.pages[pdfTextLine.pageNumber].size.height -
-                        pdfTextLine.bounds.bottom)
-                    .toInt(),
-                pdfTextLine.bounds.right.toInt(),
-                (_pdfDocument.pages[pdfTextLine.pageNumber].size.height -
-                        pdfTextLine.bounds.bottom)
-                    .toInt()
-              ],
-              'Underline Annotation',
-              author: 'Syncfusion',
-              innerColor: PdfColor(0, 255, 0),
-              color: PdfColor(0, 255, 0),
-            );
-            _page.annotations.add(lineAnnotation);
-            _page.annotations.flattenAllAnnotations();
-          });
-          final List<int> bytes = _pdfDocument.saveSync();
-          setState(() {
-            documentBytes = Uint8List.fromList(bytes);
-          });
-        }
-        break;
-      case 'Strikethrough':
-        {
-          _pdfViewerKey.currentState!
-              .getSelectedTextLines()
-              .forEach((pdfTextLine) {
-            final PdfPage _page = _pdfDocument.pages[pdfTextLine.pageNumber];
-            final PdfLineAnnotation lineAnnotation = PdfLineAnnotation(
-              [
-                pdfTextLine.bounds.left.toInt(),
-                ((_pdfDocument.pages[pdfTextLine.pageNumber].size.height -
-                            pdfTextLine.bounds.bottom) +
-                        (pdfTextLine.bounds.height / 2))
-                    .toInt(),
-                pdfTextLine.bounds.right.toInt(),
-                ((_pdfDocument.pages[pdfTextLine.pageNumber].size.height -
-                            pdfTextLine.bounds.bottom) +
-                        (pdfTextLine.bounds.height / 2))
-                    .toInt()
-              ],
-              'Strikethrough Annotation',
-              author: 'Syncfusion',
-              innerColor: PdfColor(255, 0, 0),
-              color: PdfColor(255, 0, 0),
-            );
-            _page.annotations.add(lineAnnotation);
-            _page.annotations.flattenAllAnnotations();
-          });
-          final List<int> bytes = _pdfDocument.saveSync();
-          setState(() {
-            documentBytes = Uint8List.fromList(bytes);
-          });
-        }
-        break;
-    }
-  }
-
   @override
   void dispose() {
- final List<int> bytes = _pdfDocument.saveSync();
-     
-            documentBytes = Uint8List.fromList(bytes);
- 
+    final List<int> bytes = _pdfDocument.saveSync();
+
+    documentBytes = Uint8List.fromList(bytes);
+
     File(document.path).writeAsBytesSync(documentBytes!);
     _timer?.cancel();
     _animationController.dispose();
@@ -318,24 +144,14 @@ class PDFViewerScreenState extends State<PDFViewerScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('PDF Viewer'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.bookmark),
-            onPressed: () {
-              _pdfViewerKey.currentState?.openBookmarkView();
-            },
-          ),
-        ],
-      ),
-      body: PopScope(
-        onPopInvokedWithResult: (a, b) async {
+      
+      body: WillPopScope(
+        onWillPop: () async {
           context
               .read<DocumentBloc>()
               .add(UpdateDocumentRead(document.path, document.lastPageRead));
-          b = true;
-          Get.back(result: true);
+              Get.back(result: true);
+          return true;
         },
         child: MouseRegion(
           onHover: (_) => _resetTimer(),
@@ -378,14 +194,6 @@ class PDFViewerScreenState extends State<PDFViewerScreen>
                                 enableTextSelection: true,
                                 canShowTextSelectionMenu: false,
                               ),
-                              if (_isDrawing)
-                                SfSignaturePad(
-                                  key: _signaturePadKey,
-                                  backgroundColor: Colors.transparent,
-                                  strokeColor: _selectedColor,
-                                  minimumStrokeWidth: 1.0,
-                                  maximumStrokeWidth: 4.0,
-                                ),
                             ],
                           ),
                         ),

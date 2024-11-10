@@ -7,9 +7,7 @@ import 'package:readnow/model/document.dart';
 
 class ContinueReading extends StatelessWidget {
   final List<Document> documents;
-  final Function refreshDocuments;
-
-  ContinueReading({required this.documents, required this.refreshDocuments});
+  ContinueReading({required this.documents});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +25,7 @@ class ContinueReading extends StatelessWidget {
             });
             if (result == true) {
               // Refresh the document list if the result is true
-              refreshDocuments();
+             
             }
           },
           leading: Transform.scale(

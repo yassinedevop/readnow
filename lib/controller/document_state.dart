@@ -38,3 +38,14 @@ class DocumentReadUpdated extends DocumentState {
   @override
   List<Object> get props => [document];
 }
+
+class DocumentLastReadLoaded extends DocumentState {
+  final String filePath;
+  final DateTime? lastRead;
+  final int lastPageRead;
+
+  const DocumentLastReadLoaded(this.filePath, this.lastRead, this.lastPageRead);
+
+  @override
+  List<Object> get props => [filePath, lastRead ?? DateTime(1970), lastPageRead];
+}

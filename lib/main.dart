@@ -21,9 +21,9 @@ class MyApp extends StatelessWidget {
       child: GetMaterialApp(
         title: 'Read Now',
         theme: AppTheme.darkTheme,
-        home: PdfListScreen(),
+        home: HomePage(),
         getPages: [
-          GetPage(name: '/', page: () => PdfListScreen()),
+          GetPage(name: '/', page: () => HomePage()),
           GetPage(name: '/preview', page: () => PDFViewerScreen()),
         ],
       ),
