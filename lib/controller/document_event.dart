@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:readnow/model/document.dart';
 
 abstract class DocumentEvent extends Equatable {
   const DocumentEvent();
@@ -15,13 +16,11 @@ class LoadDocuments extends DocumentEvent {
 }
 
 class UpdateDocumentRead extends DocumentEvent {
-  final String filePath;
-  final int lastPageRead;
-
-  const UpdateDocumentRead(this.filePath, this.lastPageRead);
+  final Document document;
+  const UpdateDocumentRead(this.document);
 
   @override
-  List<Object> get props => [filePath, lastPageRead];
+  List<Object> get props => [document];
 }
 
 class UpdateDocumentCategory extends DocumentEvent {

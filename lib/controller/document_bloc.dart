@@ -34,7 +34,8 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
       if (documents.isEmpty) {
         documents = await _getFiles();
       }
-      emit(DocumentLoaded(documents));
+      final lastReadDocument = _getLastReadDocument(documents);
+      emit(DocumentLoaded(documents, lastReadDocument: lastReadDocument));
     } catch (e) {
       emit(DocumentError(e.toString()));
     }
@@ -43,11 +44,12 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
   Future<void> _onUpdateDocumentRead(UpdateDocumentRead event, Emitter<DocumentState> emit) async {
     prefs = await SharedPreferences.getInstance();
     try {
-      await _setLastRead(event.filePath);
-      await _incrementReadCount(event.filePath);
-      await _setLastPageRead(event.filePath, event.lastPageRead);
-      emit(DocumentReadUpdated(event.filePath));
-      emit(DocumentLoaded(documents)); // Ensure the state is updated with the latest documents
+      await _setLastRead(event.document.path);
+      await _incrementReadCount(event.document.path);
+      await _setLastPageRead(event.document.path, event.document.lastPageRead);
+      emit(DocumentReadUpdated(event.document.path));
+      
+      emit(DocumentLoaded(documents, lastReadDocument: event.document)); // Ensure the state is updated with the latest documents
     } catch (e) {
       emit(DocumentError(e.toString()));
     }
@@ -57,7 +59,8 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
     try {
       final document = documents.firstWhere((doc) => doc.path == event.filePath);
       document.category = event.category;
-      emit(DocumentLoaded(documents)); // Ensure the state is updated with the latest documents
+      final lastReadDocument = _getLastReadDocument(documents);
+      emit(DocumentLoaded(documents, lastReadDocument: lastReadDocument)); // Ensure the state is updated with the latest documents
     } catch (e) {
       emit(DocumentError(e.toString()));
     }
@@ -169,5 +172,10 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
 
   Future<void> _setLastPageRead(String filePath, int pageNumber) async {
     await prefs.setInt('lastPageRead_$filePath', pageNumber);
+  }
+
+  Document? _getLastReadDocument(List<Document> documents) {
+    documents.sort((a, b) => b.lastRead?.compareTo(a.lastRead ?? DateTime(1970)) ?? 0);
+    return documents.isNotEmpty ? documents.first : null;
   }
 }

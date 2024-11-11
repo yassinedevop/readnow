@@ -82,44 +82,39 @@ class _MostReadBooksState extends State<MostReadBooks> {
       itemCount: documents.length,
       itemBuilder: (context, index) {
         String fileName = documents[index].title; // Extract file name
-        return GestureDetector(
-          onTap: () async {
-            await updateMostRead(documents[index]);
-          },
-          child: Column(
-            children: [
-              Expanded(
+        return Column(
+          children: [
+            Expanded(
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.white,
+                ),
                 child: Container(
-                  margin: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    color: Colors.white,
-                  ),
-                  child: Container(
-                    
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8.0),
-                      image: DecorationImage(
-                        image: FileImage(File(documents[index].thumbnailPath)),
-                        fit: BoxFit.cover,
-                      ),
+                    borderRadius: BorderRadius.circular(8.0),
+                    image: DecorationImage(
+                      image: FileImage(File(documents[index].thumbnailPath)),
+                      fit: BoxFit.cover,
                     ),
-                    height: MediaQuery.of(context).size.width * 0.6,
                   ),
+                  height: MediaQuery.of(context).size.width * 0.6,
                 ),
               ),
-              Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    fileName,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+            ),
+            Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  fileName,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-            ],
-          ),
+              ),
+          ],
         );
       },
     );
@@ -132,15 +127,6 @@ class _MostReadBooksState extends State<MostReadBooks> {
     super.dispose();
   }
 
-  Future<void> updateMostRead(Document document) async {
-    // Navigate to PDFViewerScreen and wait for the result
-    final result = await Get.toNamed('/preview', arguments: {
-      'document': document,
-    });
-    if (result == true) {
-       setState(() {
-                    context.read<DocumentBloc>().add(UpdateDocumentRead(document.path, document.lastPageRead));
-                  });
-    }
-  }
+  
+  
 }

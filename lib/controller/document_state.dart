@@ -14,11 +14,12 @@ class DocumentLoading extends DocumentState {}
 
 class DocumentLoaded extends DocumentState {
   final List<Document> documents;
+  final Document? lastReadDocument; // Add this line
 
-  const DocumentLoaded(this.documents);
+  const DocumentLoaded(this.documents, {this.lastReadDocument}); // Modify constructor
 
   @override
-  List<Object> get props => [documents];
+  List<Object> get props => [documents, lastReadDocument ?? ''];
 }
 
 class DocumentError extends DocumentState {

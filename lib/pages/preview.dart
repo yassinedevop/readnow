@@ -149,7 +149,7 @@ class PDFViewerScreenState extends State<PDFViewerScreen>
         onWillPop: () async {
           context
               .read<DocumentBloc>()
-              .add(UpdateDocumentRead(document.path, document.lastPageRead));
+              .add(UpdateDocumentRead(document));
               Get.back(result: true);
           return true;
         },

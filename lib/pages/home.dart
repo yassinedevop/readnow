@@ -36,13 +36,14 @@ class _HomePageState extends State<HomePage> {
       ),
       body: BlocBuilder<DocumentBloc, DocumentState>(
         builder: (context, state) {
+    
           if (state is DocumentLoaded) {
             return RefreshIndicator(
               onRefresh: _refresh,
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    ContinueReading(documents: state.documents,),
+                    ContinueReading(lastDocumentRead: state.lastReadDocument!),
                     MostReadBooks(documents: state.documents),
                   ],
                 ),
