@@ -145,13 +145,17 @@ class PDFViewerScreenState extends State<PDFViewerScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       
-      body: WillPopScope(
-        onWillPop: () async {
+      body: PopScope(
+        onPopInvokedWithResult: (
+          __,
+          result,
+        ) async {
           context
               .read<DocumentBloc>()
               .add(UpdateDocumentRead(document));
+              
               Get.back(result: true);
-          return true;
+        
         },
         child: MouseRegion(
           onHover: (_) => _resetTimer(),

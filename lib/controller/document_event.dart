@@ -32,12 +32,3 @@ class UpdateDocumentCategory extends DocumentEvent {
   @override
   List<Object> get props => [filePath, category];
 }
-
-class GetDocumentLastRead extends DocumentEvent {
-  final String filePath;
-
-  const GetDocumentLastRead(this.filePath);
-
-  @override
-  List<Object> get props => [filePath];
-}

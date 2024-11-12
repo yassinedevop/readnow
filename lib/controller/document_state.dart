@@ -14,9 +14,9 @@ class DocumentLoading extends DocumentState {}
 
 class DocumentLoaded extends DocumentState {
   final List<Document> documents;
-  final Document? lastReadDocument; // Add this line
+  final Document? lastReadDocument;
 
-  const DocumentLoaded(this.documents, {this.lastReadDocument}); // Modify constructor
+  const DocumentLoaded(this.documents, {this.lastReadDocument});
 
   @override
   List<Object> get props => [documents, lastReadDocument ?? ''];

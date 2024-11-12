@@ -67,6 +67,13 @@ class AppTheme {
       secondary: Color(0xFF6368EC), // Primary color
       surface: Color(0xFF1A253B), // Cards color
     ),
+
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: Color(0xFF0f1923),
+      indicatorColor: Color(0xFF6368EC),
+     shadowColor: Colors.white30,
+     overlayColor:WidgetStatePropertyAll(Color(0xFF6368EC)),
+    )
   );
 
   static final ThemeData darkTheme = ThemeData(

@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:readnow/controller/document_bloc.dart';
 import 'package:readnow/controller/document_event.dart';
-
 import 'package:readnow/model/document.dart';
 import 'package:readnow/utils/widgets/document_list.dart';
 
@@ -85,22 +85,42 @@ class _MostReadBooksState extends State<MostReadBooks> {
         return Column(
           children: [
             Expanded(
-              child: Container(
-                margin: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: Colors.white,
-                ),
-                child: Container(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                child: Stack(
+                  children: [
+                    
+                    Container(
                   
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8.0),
-                    image: DecorationImage(
-                      image: FileImage(File(documents[index].thumbnailPath)),
-                      fit: BoxFit.cover,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8.0),
+                        image: DecorationImage(
+                          image: FileImage(File(documents[index].thumbnailPath)),
+                          fit: BoxFit.cover,
+                        ),
+                        
+                      ),
+                                
                     ),
-                  ),
-                  height: MediaQuery.of(context).size.width * 0.6,
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(8.0),
+                        
+              splashColor: Theme.of(context).primaryColor.withOpacity(0.5),
+              highlightColor: Theme.of(context).primaryColor.withOpacity(0.5),
+                        onTap: ()async{
+                       var result = await Get.toNamed('/preview', arguments: {
+                    'document': documents[index],
+                  });
+                  
+                  if(result)
+                  context.read<DocumentBloc>().add(UpdateDocumentRead(documents[index]));
+                }
+    ) ,
+                      ),
+                    
+                  ],
                 ),
               ),
             ),
@@ -124,6 +144,7 @@ class _MostReadBooksState extends State<MostReadBooks> {
 
   @override
   void dispose() {
+    
     super.dispose();
   }
 

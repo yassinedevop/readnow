@@ -18,7 +18,6 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
     on<LoadDocuments>(_onLoadDocuments);
     on<UpdateDocumentRead>(_onUpdateDocumentRead);
     on<UpdateDocumentCategory>(_onUpdateDocumentCategory);
-    on<GetDocumentLastRead>(_onGetDocumentLastRead);
     _initSharedPreferences();
   }
 
@@ -35,6 +34,7 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
         documents = await _getFiles();
       }
       final lastReadDocument = _getLastReadDocument(documents);
+      
       emit(DocumentLoaded(documents, lastReadDocument: lastReadDocument));
     } catch (e) {
       emit(DocumentError(e.toString()));
@@ -47,9 +47,12 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
       await _setLastRead(event.document.path);
       await _incrementReadCount(event.document.path);
       await _setLastPageRead(event.document.path, event.document.lastPageRead);
-      emit(DocumentReadUpdated(event.document.path));
       
-      emit(DocumentLoaded(documents, lastReadDocument: event.document)); // Ensure the state is updated with the latest documents
+      final index = documents.indexWhere( (doc) => doc.path == event.document.path);
+      documents[index].lastRead =  DateTime.now();
+      documents[index].lastPageRead = event.document.lastPageRead;
+
+      emit(DocumentLoaded(documents, lastReadDocument: documents[index])); // Ensure the state is updated with the latest documents
     } catch (e) {
       emit(DocumentError(e.toString()));
     }
@@ -61,16 +64,6 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
       document.category = event.category;
       final lastReadDocument = _getLastReadDocument(documents);
       emit(DocumentLoaded(documents, lastReadDocument: lastReadDocument)); // Ensure the state is updated with the latest documents
-    } catch (e) {
-      emit(DocumentError(e.toString()));
-    }
-  }
-
-  Future<void> _onGetDocumentLastRead(GetDocumentLastRead event, Emitter<DocumentState> emit) async {
-    try {
-      final lastRead = await _getLastRead(event.filePath);
-      final lastPageRead = await _getLastPageRead(event.filePath);
-      emit(DocumentLastReadLoaded(event.filePath, lastRead, lastPageRead));
     } catch (e) {
       emit(DocumentError(e.toString()));
     }
@@ -143,7 +136,7 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
     return await File(cachedImagePath).exists().then((value) => value ? cachedImagePath : '');
   }
 
-  Future<DateTime?> _getLastRead(String filePath) async {
+  DateTime? _getLastRead(String filePath)  {
     final lastReadString = prefs.getString('lastRead_$filePath');
     if (lastReadString != null) {
       return DateTime.parse(lastReadString);
