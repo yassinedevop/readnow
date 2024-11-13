@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdfx/pdfx.dart';
+import 'package:readnow/model/day.dart';
 import 'document_event.dart';
 import 'document_state.dart';
 import 'package:readnow/model/document.dart';
@@ -47,6 +49,7 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
       await _setLastRead(event.document.path);
       await _incrementReadCount(event.document.path);
       await _setLastPageRead(event.document.path, event.document.lastPageRead);
+      await _updateDayStatistics(event.document, event.duration);
       
       final index = documents.indexWhere( (doc) => doc.path == event.document.path);
       documents[index].lastRead =  DateTime.now();
@@ -165,6 +168,41 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
 
   Future<void> _setLastPageRead(String filePath, int pageNumber) async {
     await prefs.setInt('lastPageRead_$filePath', pageNumber);
+  }
+
+  Future<void> _updateDayStatistics(Document document, int duration) async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> daysStringList = prefs.getStringList('days') ?? [];
+    final today = DateTime.now().toIso8601String().split('T').first;
+    final index = daysStringList.indexWhere((dayString) => Day.fromJson(jsonDecode(dayString)).date == today);
+
+    if (index != -1) {
+      final day = Day.fromJson(jsonDecode(daysStringList[index]));
+      day.readCount += 1;
+      day.pageCount += document.pageCount;
+      day.duration += duration;
+
+      final bookIndex = day.booksRead.indexWhere((book) => book.title == document.title);
+      if (bookIndex != -1) {
+        day.booksRead[bookIndex].readCount += 1;
+        day.booksRead[bookIndex].duration += duration;
+      } else {
+        day.booksRead.add(BooksWithReadTime(title: document.title, duration: duration));
+      }
+
+      daysStringList[index] = jsonEncode(day.toJson());
+    } else {
+      final newDay = Day(
+        date: today,
+        readCount: 1,
+        pageCount: document.pageCount,
+        duration: duration,
+        booksRead: [BooksWithReadTime(title: document.title, duration: duration)],
+      );
+      daysStringList.add(jsonEncode(newDay.toJson()));
+    }
+
+    await prefs.setStringList('days', daysStringList);
   }
 
   Document? _getLastReadDocument(List<Document> documents) {

@@ -17,18 +17,22 @@ class LoadDocuments extends DocumentEvent {
 
 class UpdateDocumentRead extends DocumentEvent {
   final Document document;
-  const UpdateDocumentRead(this.document);
+  final int _duration; // in minutes
+
+  const UpdateDocumentRead(this.document, {int duration = 0}) : _duration = duration;
+
+  int get duration => _duration;
 
   @override
-  List<Object> get props => [document];
+  List<Object> get props => [document, _duration];
 }
 
 class UpdateDocumentCategory extends DocumentEvent {
   final String filePath;
-  final String category;
+  final String? category;
 
   const UpdateDocumentCategory(this.filePath, this.category);
 
   @override
-  List<Object> get props => [filePath, category];
+  List<Object> get props => [filePath, category ?? ''];
 }

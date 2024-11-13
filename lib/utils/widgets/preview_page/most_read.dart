@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:readnow/controller/document_bloc.dart';
 import 'package:readnow/controller/document_event.dart';
 import 'package:readnow/model/document.dart';
@@ -24,7 +23,6 @@ class ToggleGridView extends StatelessWidget {
     );
   }
 }
-
 class MostReadBooks extends StatefulWidget {
   final List<Document> documents;
 
@@ -33,121 +31,114 @@ class MostReadBooks extends StatefulWidget {
   @override
   _MostReadBooksState createState() => _MostReadBooksState();
 }
+    class _MostReadBooksState extends State<MostReadBooks> {
+      bool _isGridView = false;
 
-class _MostReadBooksState extends State<MostReadBooks> {
-  bool _isGridView = false;
+      @override
+      Widget build(BuildContext context) {
+        List<Document> topMostReadBooks = _getTopMostReadBooks(widget.documents);
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+        return Container(
+          padding: EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Most Read',
-                style: Theme.of(context).textTheme.displayLarge,
+              Row(
+                children: [
+                  Text(
+                    'Most Read',
+                    style: Theme.of(context).textTheme.displayLarge,
+                  ),
+                  Spacer(),
+                  ToggleGridView(
+                    isGridView: _isGridView,
+                    onPressed: () {
+                      setState(() {
+                        _isGridView = !_isGridView;
+                      });
+                    },
+                  ),
+                ],
               ),
-              Spacer(),
-              ToggleGridView(
-                isGridView: _isGridView,
-                onPressed: () {
-                  setState(() {
-                    _isGridView = !_isGridView;
-                  });
-                },
+              SizedBox(
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: _isGridView ? _buildGridView(topMostReadBooks) : DocumentListView(documents: topMostReadBooks, selectedDocuments: [], isSelectionMode: false, onLongPress: (){}, onDocumentsChanged: (){}),
               ),
             ],
           ),
-          SizedBox(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height * 0.6,
-            child: _isGridView ? _buildGridView(widget.documents) : DocumentListView(documents : widget.documents, selectedDocuments: [], isSelectionMode: false, onLongPress: (){}, onDocumentsChanged: (){}   ),
-            
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGridView(List<Document> documents) {
-    return GridView.builder(
-     
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        childAspectRatio: 7 / 10,
-        crossAxisCount: 2,
-      ),
-      itemCount: documents.length,
-      itemBuilder: (context, index) {
-        String fileName = documents[index].title; // Extract file name
-        return Column(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                child: Stack(
-                  children: [
-                    
-                    Container(
-                  
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8.0),
-                        image: DecorationImage(
-                          image: FileImage(File(documents[index].thumbnailPath)),
-                          fit: BoxFit.cover,
-                        ),
-                        
-                      ),
-                                
-                    ),
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(8.0),
-                        
-              splashColor: Theme.of(context).primaryColor.withOpacity(0.5),
-              highlightColor: Theme.of(context).primaryColor.withOpacity(0.5),
-                        onTap: ()async{
-                       var result = await Get.toNamed('/preview', arguments: {
-                    'document': documents[index],
-                  });
-                  
-                  if(result)
-                  context.read<DocumentBloc>().add(UpdateDocumentRead(documents[index]));
-                }
-    ) ,
-                      ),
-                    
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  fileName,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-          ],
         );
-      },
-    );
-  }
+      }
 
+      List<Document> _getTopMostReadBooks(List<Document> documents) {
+        // Sort documents by readCount in descending order and take the top 20
+        documents.sort((a, b) => b.readCount.compareTo(a.readCount));
+        return documents.take(20).toList();
+      }
 
+      Widget _buildGridView(List<Document> documents) {
+        return GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            childAspectRatio: 7 / 10,
+            crossAxisCount: 2,
+          ),
+          itemCount: documents.length,
+          itemBuilder: (context, index) {
+            String fileName = documents[index].title; // Extract file name
+            return Column(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    child: Stack(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8.0),
+                            image: DecorationImage(
+                              image: FileImage(File(documents[index].thumbnailPath)),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8.0),
+                            splashColor: Theme.of(context).primaryColor.withOpacity(0.5),
+                            highlightColor: Theme.of(context).primaryColor.withOpacity(0.5),
+                            onTap: () async {
+                              var result = await Get.toNamed('/preview', arguments: {
+                                'document': documents[index],
+                              });
 
-  @override
-  void dispose() {
-    
-    super.dispose();
-  }
+                              if (result)
+                                context.read<DocumentBloc>().add(UpdateDocumentRead(documents[index]));
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    fileName,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      }
 
-  
-  
-}
+      @override
+      void dispose() {
+        super.dispose();
+      }
+    }

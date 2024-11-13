@@ -6,6 +6,7 @@ import 'package:readnow/controller/document_bloc.dart';
 import 'package:readnow/controller/document_event.dart';
 import 'package:readnow/pages/home.dart';
 import 'package:readnow/pages/preview.dart';
+import 'package:readnow/pages/statistics.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +26,7 @@ class MyApp extends StatelessWidget {
         getPages: [
           GetPage(name: '/', page: () => HomePage()),
           GetPage(name: '/preview', page: () => PDFViewerScreen()),
+          GetPage(name: '/statistics', page: () => StatisticsPage()), // Add this line
         ],
       ),
     );

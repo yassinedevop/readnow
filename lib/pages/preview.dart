@@ -39,10 +39,12 @@ class PDFViewerScreenState extends State<PDFViewerScreen>
   Timer? _timer;
 
   OverlayEntry? _overlayEntry;
+  late DateTime _startTime;
 
   @override
   void initState() {
     super.initState();
+    _startTime = DateTime.now();
     _pdfViewerController = PdfViewerController();
     document = args['document'];
     _pageNumber = document.lastPageRead;
@@ -132,6 +134,10 @@ class PDFViewerScreenState extends State<PDFViewerScreen>
     documentBytes = Uint8List.fromList(bytes);
 
     File(document.path).writeAsBytesSync(documentBytes!);
+
+    final int duration = DateTime.now().difference(_startTime).inMinutes;
+    context.read<DocumentBloc>().add(UpdateDocumentRead(document, duration: duration));
+
     _timer?.cancel();
     _animationController.dispose();
     _pdfViewerController.dispose();

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:readnow/controller/document_bloc.dart';
 import 'package:readnow/controller/document_event.dart';
 import 'package:readnow/controller/document_state.dart';
+import 'package:readnow/pages/statistics.dart';
 import 'package:readnow/utils/widgets/preview_page/continue_reading.dart';
 import 'package:readnow/utils/widgets/preview_page/most_read.dart';
 import 'package:readnow/pages/categories.dart';
@@ -17,10 +18,9 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _pages = [
     HomeContent(),
-    CategoriesPage(), // Pass the appropriate documents list
+    CategoriesPage(),
+    StatisticsPage(), // Add this line
   ];
-
-
 
   void _onItemTapped(int index) {
     setState(() {
@@ -51,6 +51,10 @@ class _HomePageState extends State<HomePage> {
             BottomNavigationBarItem(
               icon: Icon(Icons.category),
               label: 'Categories',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.bar_chart),
+              label: 'Statistics', // Add this line
             ),
           ],
           type: BottomNavigationBarType.shifting,
