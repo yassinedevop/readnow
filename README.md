@@ -1,5 +1,8 @@
 # ReadNow
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/yassinee)
+
+
 ReadNow is a Flutter application that allows users to manage and read PDF documents. The app provides features such as categorizing documents, tracking reading progress, and viewing reading statistics.
 
 ![Showcase](assets/images/ShowCase.jpg)
