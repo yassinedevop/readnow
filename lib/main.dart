@@ -4,13 +4,22 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:readnow/controller/document_bloc.dart';
 import 'package:readnow/controller/document_event.dart';
+import 'package:readnow/model/document.dart';
 import 'package:readnow/pages/home.dart';
 import 'package:readnow/pages/preview.dart';
 import 'package:readnow/pages/statistics.dart';
+import 'package:flutter/services.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  const platform = MethodChannel('com.example.readnow/pdf');
+  platform.setMethodCallHandler((call) async {
+    if (call.method == 'openPDF') {
+      final String filePath = call.arguments;
+      Get.to(() => PDFViewerScreen(), arguments: Document.fromPath(filePath) );
+    }
+  });
   runApp(MyApp());
 }
 
@@ -23,6 +32,7 @@ class MyApp extends StatelessWidget {
         title: 'Read Now',
         theme: AppTheme.darkTheme,
         home: HomePage(),
+        debugShowCheckedModeBanner: false,
         getPages: [
           GetPage(name: '/', page: () => HomePage()),
           GetPage(name: '/preview', page: () => PDFViewerScreen()),
@@ -75,7 +85,11 @@ class AppTheme {
       indicatorColor: Color(0xFF6368EC),
      shadowColor: Colors.white30,
      overlayColor:WidgetStatePropertyAll(Color(0xFF6368EC)),
-    )
+    ),
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: Color(0xFF1A253B), // Cards color
+      contentTextStyle: TextStyle(color: Colors.white),
+    ),
   );
 
   static final ThemeData darkTheme = ThemeData(
@@ -91,7 +105,7 @@ class AppTheme {
         textStyle: TextStyle(color: Colors.white, fontSize: 16),
       ),
       bodyMedium: GoogleFonts.openSans(
-        textStyle: TextStyle(color: Colors.white, fontSize: 14),
+        textStyle: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
       ),
       titleMedium: GoogleFonts.montserrat(
         textStyle: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500),
@@ -113,6 +127,10 @@ class AppTheme {
       primary: Color(0xFF6368EC), // Primary color
       secondary: Color(0xFF6368EC), // Primary color
       surface: Color(0xFF1A253B), // Cards color
+    ),
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: Color(0xFF1A253B), // Cards color
+      contentTextStyle: TextStyle(color: Colors.white),
     ),
   );
 }

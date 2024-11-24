@@ -58,7 +58,7 @@ final lastDocumentRead ;
               children: [
                 SizedBox(height: 10),
                 Text(
-                  'Last Read: ${_formatLastRead(lastDocumentRead.lastRead!)}',
+                  'Last Read: ' + (lastDocumentRead.lastRead == null ? 'Never' : _formatLastRead(lastDocumentRead.lastRead)),
                   style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                         color: Theme.of(context).highlightColor.withOpacity(0.7),
                       ),

@@ -80,53 +80,49 @@ class _CategoriesPageState extends State<CategoriesPage> {
     showDialog(
       context: context,
       builder: (context) {
-        return AnimatedOpacity(
-          opacity: _isDialogVisible ? 1.0 : 0.0,
-          duration: Duration(milliseconds: 300),
-          child: AlertDialog(
-            title: Text('Rename or Delete Category'),
-            content: TextField(
-              controller: _controller,
-              decoration: InputDecoration(hintText: 'Enter new category name'),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    _isDialogVisible = false;
-                  });
-                  Get.back(result: true);
-                },
-                child: Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    category.name = _controller.text;
-                    _isDialogVisible = false;
-                  });
-                  _saveCategories();
-                  Get.back(result: true);
-                },
-                child: Text('Rename'),
-              ),
-              TextButton(
-                onPressed: () async {
-                  setState(() {
-                    for (var document in category.documents) {
-                      document.category = null;
-                      context.read<DocumentBloc>().add(UpdateDocumentCategory(document.path, null));
-                    }
-                    categories.remove(category);
-                    _isDialogVisible = false;
-                  });
-                  await _removeCategoryFromPreferences(category);
-                  Get.back(result: true);
-                },
-                child: Text('Delete', style: TextStyle(color: Colors.red)),
-              ),
-            ],
+        return AlertDialog(
+          title: Text('Rename or Delete Category'),
+          content: TextField(
+            controller: _controller,
+            decoration: InputDecoration(hintText: 'Enter new category name'),
           ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _isDialogVisible = false;
+                });
+                Get.back(result: true);
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  category.name = _controller.text;
+                  _isDialogVisible = false;
+                });
+                _saveCategories();
+                Get.back(result: true);
+              },
+              child: Text('Rename'),
+            ),
+            TextButton(
+              onPressed: () async {
+                setState(() {
+                  for (var document in category.documents) {
+                    document.category = "uncategorized";
+                    context.read<DocumentBloc>().add(UpdateDocumentCategory(document.path, "uncategorized"));
+                  }
+                  categories.remove(category);
+                  _isDialogVisible = false;
+                });
+                await _removeCategoryFromPreferences(category);
+                Get.back(result: true);
+              },
+              child: Text('Delete', style: TextStyle(color: Colors.red)),
+            ),
+          ],
         );
       },
     );
@@ -186,7 +182,11 @@ class _CategoriesPageState extends State<CategoriesPage> {
                   onPressed: () {
                     if (_controller.text.isNotEmpty) {
                       if (categories.any((cat) => cat.name == _controller.text)) {
-                        Get.snackbar('Add Category', 'Category name already exists');
+                        Get.snackbar(
+                          'Add Category',
+                          'Category name already exists',
+                        
+                        );
                       } else {
                         final newCategory = Category(
                           name: _controller.text,
@@ -203,6 +203,11 @@ class _CategoriesPageState extends State<CategoriesPage> {
                             );
                             oldCategory.documents.remove(document);
 
+                            // Check if document already exists in new category
+                            if (!newCategory.documents.contains(document)) {
+                              newCategory.documents.add(document);
+                            }
+
                             // Assign document to new category
                             document.category = newCategory.name;
                             context.read<DocumentBloc>().add(UpdateDocumentCategory(document.path, newCategory.name));
@@ -212,10 +217,19 @@ class _CategoriesPageState extends State<CategoriesPage> {
                           _isDialogVisible = false;
                         });
                         _saveCategories();
-                        Get.snackbar('Category Added', 'New category has been added');
+                        Get.snackbar(
+                          'Category Added',
+                          'New category has been added',
+                        
+                        );
                       }
                     } else {
-                      Get.snackbar('Add Category', 'No category name provided');
+                      Get.snackbar(
+                        'Add Category',
+                        'No category name provided',
+                        backgroundColor: Theme.of(context).cardColor.withAlpha(200),
+                        colorText: Theme.of(context).textTheme.bodyLarge?.color,
+                      );
                     }
                     setState(() {
                       selectedDocuments.clear();
@@ -232,7 +246,13 @@ class _CategoriesPageState extends State<CategoriesPage> {
         },
       );
     } else {
-      Get.snackbar('Add Category', 'No documents selected');
+      Get.snackbar(
+        'Add Category',
+        'No documents selected',
+        backgroundColor: Theme.of(context).cardColor.withAlpha(200),
+        colorText: Theme.of(context).textTheme.bodyLarge?.color,
+
+      );
     }
   }
 
@@ -264,11 +284,15 @@ class _CategoriesPageState extends State<CategoriesPage> {
                           );
                           oldCategory.documents.remove(document);
 
+                          // Check if document already exists in new category
+                          if (!category.documents.contains(document)) {
+                            category.documents.add(document);
+                          }
+
                           // Assign document to new category
                           document.category = category.name;
                           context.read<DocumentBloc>().add(UpdateDocumentCategory(document.path, category.name));
                         }
-                        category.documents.addAll(selectedDocuments);
                         category.documents = category.documents.toSet().toList(); // Ensure no duplicates
                         selectedDocuments.clear();
                         isSelectionMode = false;
@@ -276,7 +300,12 @@ class _CategoriesPageState extends State<CategoriesPage> {
                       });
                       _saveCategories();
                       Get.back();
-                      Get.snackbar('Category Updated', 'Documents have been added to the existing category');
+                      Get.snackbar(
+                        'Category Updated',
+                        'Documents have been added to the existing category',
+                        backgroundColor: Theme.of(context).cardColor.withAlpha(200),
+                        colorText: Theme.of(context).textTheme.bodyLarge?.color,
+                      );
                     },
                   );
                 }).toList(),
@@ -299,7 +328,12 @@ class _CategoriesPageState extends State<CategoriesPage> {
         },
       );
     } else {
-      Get.snackbar('Assign Category', 'No documents selected or no categories available');
+      Get.snackbar(
+        'Assign Category',
+        'No documents selected or no categories available',
+        backgroundColor: Theme.of(context).cardColor.withAlpha(200),
+        colorText: Theme.of(context).textTheme.bodyLarge?.color,
+      );
     }
   }
 
@@ -406,7 +440,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 4.0),
             child: Material(
-              color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.5) : Theme.of(context).cardColor,
+              color: isSelected ? Theme.of(context).primaryColor.withOpacity(0.5) : Theme.of(context).cardColor.withAlpha(200),
               shadowColor: Colors.white10,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6.0)),
               elevation: 1,

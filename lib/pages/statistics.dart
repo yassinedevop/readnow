@@ -1,10 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'package:readnow/main.dart';
 import 'package:readnow/model/day.dart';
-
+import 'package:readnow/utils/widgets/statistics_page/reading_progress_line_chart.dart';
+import 'package:readnow/utils/widgets/statistics_page/reading_progress_bar_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
@@ -20,9 +19,7 @@ class StatisticsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Statistics'),
-      ),
+      
       body: FutureBuilder<List<Day>>(
         future: _getDaysFromLocal(),
         builder: (context, snapshot) {
@@ -34,76 +31,26 @@ class StatisticsPage extends StatelessWidget {
             return Center(child: Text('No statistics available'));
           } else {
             final days = snapshot.data!;
-            final today = DateTime.now().toIso8601String().split('T').first;
-            final todayStats = days.firstWhere((day) => day.date == today, orElse: () => Day());
+  
 
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
+            return SingleChildScrollView(
               child: Column(
                 children: [
-                  Text(
-                    'Reading Progress Over the Week',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  SizedBox(height: 16),
-                  Expanded(
-                    child: LineChart(
-                      LineChartData(
-                        gridData: FlGridData(show: true),
-                        titlesData: FlTitlesData(
-                          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true)),
-                          bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true)),
-                        ),
-                        borderData: FlBorderData(show: true),
-                        lineBarsData: [
-                          LineChartBarData(
-                            spots: _getReadingProgress(days),
-                            isCurved: true,
-                            color: Theme.of(context).primaryColor,
-                            barWidth: 4,
-                            belowBarData: BarAreaData(show: true),
-                          ),
-                        ],
-                      ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      height: 300,
+                      child: ReadingProgressBarChart(days: days),
                     ),
                   ),
-                  SizedBox(height: 16),
-                  Text(
-                    'Time Spent Reading Over the Week',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  SizedBox(height: 16),
-                  Expanded(
-                    child: BarChart(
-                      BarChartData(
-                        alignment: BarChartAlignment.spaceAround,
-                        barGroups: _getReadingTime(days),
-                        titlesData: FlTitlesData(
-                          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true)),
-                          bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true)),
-                        ),
-                        borderData: FlBorderData(show: true),
-                      ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      height: 300,
+                      child: ReadingProgressLineChart(days: days),
                     ),
                   ),
-                  SizedBox(height: 16),
-                  Text(
-                    'Time Spent Reading Today',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  SizedBox(height: 16),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: todayStats.booksRead.length,
-                      itemBuilder: (context, index) {
-                        final book = todayStats.booksRead[index];
-                        return ListTile(
-                          title: Text(book.title),
-                          subtitle: Text('Time spent: ${book.duration} minutes'),
-                        );
-                      },
-                    ),
-                  ),
+                 
                 ],
               ),
             );
@@ -113,31 +60,6 @@ class StatisticsPage extends StatelessWidget {
     );
   }
 
-  List<FlSpot> _getReadingProgress(List<Day> days) {
-    // Calculate reading progress based on readCount
-    List<FlSpot> spots = [];
-    for (int i = 0; i < days.length; i++) {
-      spots.add(FlSpot(i.toDouble(), days[i].readCount.toDouble()));
-    }
-    return spots;
-  }
 
-  List<BarChartGroupData> _getReadingTime(List<Day> days) {
-    // Calculate reading time based on duration
-    List<BarChartGroupData> barGroups = [];
-    for (int i = 0; i < days.length; i++) {
-      barGroups.add(
-        BarChartGroupData(
-          x: i,
-          barRods: [
-            BarChartRodData(
-              toY: days[i].duration.toDouble(),
-              color: AppTheme.lightTheme.primaryColor,
-            ),
-          ],
-        ),
-      );
-    }
-    return barGroups;
-  }
+
 }

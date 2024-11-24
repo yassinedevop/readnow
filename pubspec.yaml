@@ -36,6 +36,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^8.1.6
+  flutter_launcher_icons: ^0.14.1
   get: ^4.6.6
   google_fonts: ^6.2.1
   http: ^1.2.2

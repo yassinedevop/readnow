@@ -36,3 +36,5 @@ class UpdateDocumentCategory extends DocumentEvent {
   @override
   List<Object> get props => [filePath, category ?? ''];
 }
+
+class ClearCache extends DocumentEvent {}

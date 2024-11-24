@@ -48,4 +48,17 @@ class Document {
       'category': category, // Add this line
     };
   }
+
+
+  factory Document.fromPath(String path) {
+    return Document(
+      id: path.hashCode.toString(),
+      title: path.split('/').last.split(".").first,
+      path: path,
+      thumbnailPath: '', // Provide a default value or generate a thumbnail path
+      pageCount: 1, // Provide a default value
+      readCount: 1, // Provide a default value
+      lastPageRead: 1, // Provide a default value
+    );
+  }
 }

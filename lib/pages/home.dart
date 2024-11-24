@@ -35,6 +35,14 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         title: Text('Read Now', style: Theme.of(context).textTheme.displayLarge),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: () {
+              context.read<DocumentBloc>().add(ClearCache());
+            },
+          ),
+        ],
       ),
       bottomNavigationBar: ClipRRect(
         borderRadius: BorderRadius.only(

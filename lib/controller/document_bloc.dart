@@ -20,6 +20,7 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
     on<LoadDocuments>(_onLoadDocuments);
     on<UpdateDocumentRead>(_onUpdateDocumentRead);
     on<UpdateDocumentCategory>(_onUpdateDocumentCategory);
+    on<ClearCache>(_onClearCache);
     _initSharedPreferences();
   }
 
@@ -34,6 +35,9 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
     try {
       if (documents.isEmpty) {
         documents = await _getFiles();
+      }
+      for (var document in documents) {
+        document.category = await _getDocumentCategory(document.path);
       }
       final lastReadDocument = _getLastReadDocument(documents);
       
@@ -65,8 +69,28 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
     try {
       final document = documents.firstWhere((doc) => doc.path == event.filePath);
       document.category = event.category;
+      await _setDocumentCategory(event.filePath, event.category ?? '');
       final lastReadDocument = _getLastReadDocument(documents);
       emit(DocumentLoaded(documents, lastReadDocument: lastReadDocument)); // Ensure the state is updated with the latest documents
+    } catch (e) {
+      emit(DocumentError(e.toString()));
+    }
+  }
+
+  Future<void> _onClearCache(ClearCache event, Emitter<DocumentState> emit) async {
+    emit(DocumentLoading());
+    try {
+      final cacheDir = Directory(directory.path);
+      if (await cacheDir.exists()) {
+        await cacheDir.delete(recursive: true);
+      }
+      await prefs.clear(); // Clear SharedPreferences
+      documents = await _getFiles();
+      for (var document in documents) {
+        document.category = await _getDocumentCategory(document.path);
+      }
+      final lastReadDocument = _getLastReadDocument(documents);
+      emit(DocumentLoaded(documents, lastReadDocument: lastReadDocument));
     } catch (e) {
       emit(DocumentError(e.toString()));
     }
@@ -105,6 +129,8 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
     }
     return pdfFiles;
   }
+
+
 
   Future<List<dynamic>> _renderFirstPage(String path) async {
     try {
@@ -168,6 +194,14 @@ class DocumentBloc extends Bloc<DocumentEvent, DocumentState> {
 
   Future<void> _setLastPageRead(String filePath, int pageNumber) async {
     await prefs.setInt('lastPageRead_$filePath', pageNumber);
+  }
+
+  Future<String?> _getDocumentCategory(String filePath) async {
+    return prefs.getString('documentCategory_$filePath');
+  }
+
+  Future<void> _setDocumentCategory(String filePath, String category) async {
+    await prefs.setString('documentCategory_$filePath', category);
   }
 
   Future<void> _updateDayStatistics(Document document, int duration) async {
